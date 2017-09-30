@@ -24,6 +24,29 @@ public class Node implements Comparable<Node>{
 		this.g=g;
 	}
 	
+	public Node(int x, int y, int newX, int newY, Node parent,int g, int[][] puz)
+	{
+		
+		for(int f=0;f<3;f++)
+		{
+			for(int h=0;h<3;h++)
+			{
+				this.puzzle[f][h]=puz.clone()[f][h];
+			}
+		}
+		
+		this.parent=parent;
+		this.g=g;
+		
+		//swap the elements at x,y and newX,newY
+		int temp=this.puzzle[x][y];
+		this.puzzle[x][y]=this.puzzle[newX][newY];
+		this.puzzle[newX][newY]=temp;
+		
+		this.x=newX;
+		this.y=newY;
+	}
+	
 	void computeManhattanSum(int[][] puzzle, int[][] goal)
 	{
 		int sum=0;
@@ -80,20 +103,4 @@ public class Node implements Comparable<Node>{
 		}
 	}
 	
-	public int[][] clonePuzzle()
-	{
-		int[][] puz=new int[3][3];
-		puz=this.puzzle;
-		
-		return puz;
-	}
-	
-	protected Node clone()
-	{
-		Node copy=new Node(this.x,this.y,this.puzzle,this.parent,this.g);
-		copy.h=this.h;
-		copy.f=this.f;
-		
-		return copy;
-	}
 }

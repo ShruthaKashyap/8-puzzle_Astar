@@ -3,11 +3,13 @@ import java.util.*;
 public class Solver {
 
 	static int size=3; //3X3 board
+	static PriorityQueue<Node> minPQ=new PriorityQueue<Node>();
+	
 	public static void main(String[] args) {
 		// TODO Auto-generated method stub
 		int[][] initial={{1,2,3},{7,5,6},{8,4,0}};
 		
-		int[][] goal={{1,2,3},{7,5,6},{8,0,4}};
+		int[][] goal={{1,2,3},{4,5,6},{7,8,0}};
 		
 		int i_blank=2,j_blank=2;
 		
@@ -19,8 +21,6 @@ public class Solver {
 	
 	static int solve(int[][]initial,int i_blank,int j_blank, int[][] goal)
 	{
-		
-		PriorityQueue<Node> minPQ=new PriorityQueue<Node>();
 		
 		Node root=new Node(i_blank,j_blank,initial,null,0);
 		
@@ -34,28 +34,18 @@ public class Solver {
 		
 		while(minPQ.isEmpty()==false)
 		{
-			//noOfMoves++;
-			ArrayList<Node> children;
+
 			Node current=minPQ.poll(); 
 			
 			if(Arrays.deepEquals(current.puzzle, goal))
 			{
 				System.out.println("goal state reached!!");
+				printPath(current);
 				break;
 			}
 			
-			children=expand(current); //branch out
-			
-			for(Node child: children)
-			{
-				//compute heuristic
-				child.computeManhattanSum(child.puzzle, goal);
-				child.compute_f_of_n(child.g, child.h);
+			expand(current,goal); //Find the children of this node
 				
-				//add child to PQ
-				minPQ.add(child);
-			}
-			
 			noOfMoves++;
 		}
 		
@@ -64,96 +54,72 @@ public class Solver {
 	
 	
 	//4 possible moves or children for a given puzzle
-	static ArrayList<Node> expand(Node current)
+	static void expand(Node current,int[][] goal)
 	{
-		Node copy=current.clone();
+		// row and column indices to define the downward, backward, upward, forward movements respectively
+		int[] rowMoves={1,0,-1,0};
+		int[] colMoves={0,-1,0,1};
+		int[][] keep=new int[size][size]; //in order to store the original parent puzzle
 		
-		int i=copy.x, j=copy.y; //blank tile coordinates
-		int[][] data;
-		int[][] puzzle_original=copy.clonePuzzle();
-		int[][] keep=new int[3][3];
-		
-		for(int f=0;f<3;f++)
+		for(int f=0;f<size;f++)
 		{
-			for(int h=0;h<3;h++)
+			for(int h=0;h<size;h++)
 			{
-				keep[f][h]=puzzle_original[f][h];
+				keep[f][h]=current.puzzle[f][h];
 			}
 		}
 		
-		//puzzle_original=copy.puzzle;
-		int level=current.g;
-		
-		ArrayList<Node> children=new ArrayList<Node>();
-		
-		Node child1, child2, child3, child4;
-		
-		//forward
-		if(j+1<2)
+		//since there are maximum four legal moves for any cell
+		for(int n=0;n<4;n++)
 		{
-			data=puzzle_original.clone();
 			
-			//swap with the node in front of it
-			int temp=data[i][j];
-			data[i][j]=data[i][j+1];
-			data[i][j+1]=temp;
-			
-			puzzle_original=keep.clone();
-			child1=new Node(i,j+1,data,current,level+1);
-			
-			children.add(child1);
+			if(validMove(current.x+rowMoves[n],current.y+colMoves[n]))
+			{	
+				
+				Node child=new Node(current.x,
+									current.y,
+									current.x+rowMoves[n],
+									current.y+colMoves[n],
+									current,
+									current.g+1,
+									keep);
+				
+				child.computeManhattanSum(child.puzzle, goal);
+				child.compute_f_of_n(child.g, child.h);
+				
+				minPQ.add(child);
+			}
 		}
-		
-		//downward
-		if(i+1<2)
-		{
-			data=puzzle_original.clone();
-			
-			//swap with the node in front of it
-			int temp=data[i][j];
-			data[i][j]=data[i+1][j];
-			data[i+1][j]=temp;
-
-			puzzle_original=keep.clone();
-			child2=new Node(i+1,j,data,current,level+1);
-			
-			children.add(child2);
-		}
-		
-		//upward
-		if(i-1>0)
-		{
-			data=puzzle_original.clone();
-			
-			//swap with the node in front of it
-			int temp=data[i][j];
-			data[i][j]=data[i-1][j];
-			data[i-1][j]=temp;
-
-			puzzle_original=keep.clone();
-			child3=new Node(i-1,j,data,current,level+1);
-			
-			children.add(child3);
-		}
-		
-		
-		//backward
-		if(j-1>0)
-		{
-			data=puzzle_original.clone();
-			
-			//swap with the node in front of it
-			int temp=data[i][j];
-			data[i][j]=data[i][j-1];
-			data[i][j-1]=temp;
-
-			puzzle_original=keep.clone();
-			child4=new Node(i,j-1,data,current,level+1);
-			
-			children.add(child4);
-		}
-		
-		return children;
 	}
-
+	
+	static boolean validMove(int a, int b)
+	{
+		if(a>=0 && a<size && b>=0 && b<size)
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	static void printPuzzle(int[][] puzzle)
+	{
+		for(int f=0;f<size;f++)
+		{
+			for(int h=0;h<size;h++)
+			{
+				System.out.print(puzzle[f][h]+" ");
+			}
+			System.out.println();
+		}
+	}
+	
+	static void printPath(Node root)
+	{
+		if (root==null)return;
+	    printPath(root.parent);
+	    printPuzzle(root.puzzle);
+	 
+	    System.out.println();
+	}
 }
