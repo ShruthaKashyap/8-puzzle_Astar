@@ -1,0 +1,2 @@
+Enter values for initial state:
+Row [0]:  Column [0]:
